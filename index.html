@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selettore Licenza Open Source</title>
+</head>
+<body>
+  <h1>Trova la licenza Open Source più adatta</h1>
+  <form id="licenseForm">
+    <fieldset>
+      <legend>1. Vuoi permettere l'uso commerciale del tuo progetto?</legend>
+      <label><input type="radio" name="commercial" value="yes"> Sì</label><br>
+      <label><input type="radio" name="commercial" value="no"> No</label><br>
+      <button type="button" onclick="clearGroup('commercial')">Ripristina</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. Vuoi permettere modifiche al codice?</legend>
+      <label><input type="radio" name="modifications" value="yes"> Sì</label><br>
+      <label><input type="radio" name="modifications" value="no"> No</label><br>
+      <button type="button" onclick="clearGroup('modifications')">Ripristina</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>3. Vuoi che le modifiche vengano rese pubbliche (copyleft)?</legend>
+      <label><input type="radio" name="copyleft" value="yes"> Sì, devono pubblicare le modifiche</label><br>
+      <label><input type="radio" name="copyleft" value="no"> No, anche modifiche private vanno bene</label><br>
+      <button type="button" onclick="clearGroup('copyleft')">Ripristina</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>4. Permetti l'uso del tuo codice in progetti proprietari?</legend>
+      <label><input type="radio" name="proprietary" value="yes"> Sì</label><br>
+      <label><input type="radio" name="proprietary" value="no"> No</label><br>
+      <button type="button" onclick="clearGroup('proprietary')">Ripristina</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>5. Quali libertà vuoi garantire?</legend>
+      <label><input type="checkbox" name="freedoms" value="redistribution"> Redistribuzione (altri possono condividere il tuo codice)</label><br>
+      <label><input type="checkbox" name="freedoms" value="private_use"> Uso privato (può essere usato senza pubblicarlo)</label><br>
+      <label><input type="checkbox" name="freedoms" value="modification"> Modifica del codice (il codice può essere modificato)</label><br>
+      <label><input type="checkbox" name="freedoms" value="attribution"> Richiedere attribuzione (chi usa il codice deve citarti)</label><br>
+      <label><input type="checkbox" name="freedoms" value="patent"> Nessun vincolo sui brevetti (nessun rischio legale per uso di tecnologie coperte da brevetti)</label><br>
+      <label><input type="checkbox" name="freedoms" value="warranty"> Nessuna garanzia (l'autore non è responsabile dei danni)</label><br>
+      <button type="button" onclick="clearGroup('freedoms')">Ripristina</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>6. Preferenze personali</legend>
+      <label for="region">Preferisci licenze riconosciute in:</label>
+      <select id="region" name="region">
+        <option value="any">Qualsiasi giurisdizione</option>
+        <option value="eu">Europa</option>
+        <option value="us">Stati Uniti</option>
+        <option value="asia">Asia</option>
+        <option value="oceania">Oceania</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend>7. A cosa è destinata la licenza?</legend>
+      <label><input type="radio" name="purpose" value="software"> Software</label><br>
+      <label><input type="radio" name="purpose" value="library"> Libreria</label><br>
+      <label><input type="radio" name="purpose" value="snippet"> Codice di esempio</label><br>
+      <label><input type="radio" name="purpose" value="prefab"> Codice prefabbricato / Template</label><br>
+      <label><input type="radio" name="purpose" value="config"> File di configurazione / Script di automazione</label><br>
+      <label><input type="radio" name="purpose" value="documentation"> Documentazione o materiale tecnico</label><br>
+      <label><input type="radio" name="purpose" value="other"> Altro (immagini, contenuti misti...)</label><br>
+      <button type="button" onclick="clearGroup('purpose')">Ripristina</button>
+    </fieldset>
+
+    <button type="submit">Calcola la licenza ideale</button>
+  </form>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function clearGroup(name) {
+      document.querySelectorAll(`[name="${name}"]`).forEach(el => el.checked = false);
+    }
+
+    document.getElementById('licenseForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      let score = {
+        MIT: 0,
+        GPL: 0,
+        Apache: 0,
+        BSD: 0,
+        MPL: 0,
+        AGPL: 0,
+        Unlicense: 0,
+        LGPL: 0,
+        GPLv2: 0,
+        LGPLv2_1: 0,
+        BSD2: 0,
+        BSD3: 0,
+        Boost: 0
+      };
+
+      if (form.get('commercial') === 'yes') {
+        score.MIT += 1;
+        score.Apache += 1;
+        score.BSD += 1;
+        score.BSD2 += 1;
+        score.BSD3 += 1;
+        score.MPL += 1;
+        score.Unlicense += 1;
+        score.Boost += 1;
+      } else {
+        score.GPL += 1;
+        score.GPLv2 += 1;
+        score.AGPL += 1;
+        score.LGPL += 1;
+        score.LGPLv2_1 += 1;
+      }
+
+      if (form.get('modifications') === 'yes') {
+        for (let k in score) score[k] += 1;
+      } else {
+        score.MIT -= 1;
+        score.Apache -= 1;
+        score.BSD -= 1;
+        score.BSD2 -= 1;
+        score.BSD3 -= 1;
+      }
+
+      if (form.get('copyleft') === 'yes') {
+        score.GPL += 2;
+        score.GPLv2 += 2;
+        score.AGPL += 2;
+        score.LGPL += 1;
+        score.LGPLv2_1 += 1;
+      } else {
+        score.MIT += 1;
+        score.Apache += 1;
+        score.BSD += 1;
+        score.BSD2 += 1;
+        score.BSD3 += 1;
+        score.MPL += 1;
+        score.Boost += 1;
+      }
+
+      if (form.get('proprietary') === 'yes') {
+        score.MIT += 1;
+        score.Apache += 1;
+        score.BSD += 1;
+        score.BSD2 += 1;
+        score.BSD3 += 1;
+        score.MPL += 1;
+        score.LGPL += 1;
+        score.LGPLv2_1 += 1;
+        score.Boost += 1;
+      } else {
+        score.GPL += 2;
+        score.GPLv2 += 2;
+        score.AGPL += 2;
+      }
+
+      const freedoms = form.getAll('freedoms');
+      if (freedoms.includes('redistribution')) for (let k in score) score[k] += 1;
+      if (freedoms.includes('private_use')) for (let k in score) score[k] += 1;
+      if (freedoms.includes('modification')) for (let k in score) score[k] += 1;
+      if (freedoms.includes('attribution')) {
+        score.Apache += 1;
+        score.MIT += 1;
+        score.MPL += 1;
+        score.BSD3 += 1;
+      }
+      if (freedoms.includes('patent')) {
+        score.Apache += 2;
+        score.Boost += 2;
+        score.MIT += 1;
+      }
+      if (freedoms.includes('warranty')) {
+        score.Unlicense += 2;
+        score.MIT += 1;
+        score.BSD2 += 1;
+      }
+
+      const region = form.get('region');
+      if (region === 'eu') {
+        score.MPL += 1;
+        score.GPL += 1;
+        score.LGPL += 1;
+      } else if (region === 'us') {
+        score.BSD += 1;
+        score.BSD3 += 1;
+        score.Apache += 1;
+        score.Unlicense += 1;
+        score.Boost += 1;
+      } else if (region === 'asia') {
+        score.MIT += 1;
+        score.BSD2 += 1;
+      } else if (region === 'oceania') {
+        score.MIT += 1;
+        score.Boost += 1;
+      }
+
+      const purpose = form.get('purpose');
+      if (purpose === 'library') {
+        score.LGPL += 2;
+        score.LGPLv2_1 += 2;
+        score.MIT += 1;
+      } else if (purpose === 'snippet') {
+        score.Unlicense += 2;
+        score.MIT += 1;
+      } else if (purpose === 'prefab') {
+        score.MIT += 2;
+        score.BSD2 += 1;
+      } else if (purpose === 'software') {
+        score.GPL += 1;
+        score.Apache += 1;
+        score.MIT += 1;
+        score.GPLv2 += 1;
+      } else if (purpose === 'config') {
+        score.MIT += 1;
+        score.BSD2 += 1;
+      } else if (purpose === 'documentation') {
+        score.BSD3 += 1;
+        score.Apache += 1;
+      } else if (purpose === 'other') {
+        score.MIT += 1;
+        score.BSD += 1;
+      }
+
+      const sorted = Object.entries(score).sort((a, b) => b[1] - a[1]);
+      const primary = sorted[0];
+      const secondary = sorted[1];
+
+      document.getElementById('result').innerHTML = `
+        <h2>Licenza consigliata: ${primary[0]}</h2>
+        <p>Punteggio: ${primary[1]}</p>
+        <h3>Seconda opzione: ${secondary[0]}</h3>
+        <p>Punteggio: ${secondary[1]}</p>
+        <small>Valuta sempre attentamente i termini di ogni licenza prima dell'uso.</small>
+      `;
+    });
+  </script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+    }
+    fieldset {
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+    .result {
+      border-top: 1px solid #ccc;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+  </style>
+</body>
+</html>
